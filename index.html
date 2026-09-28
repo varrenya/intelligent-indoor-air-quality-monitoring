@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <title>IAQ Pro | Intelligent Air Quality Monitoring with Q-Learning</title>
+
+    <!-- Google Fonts & Simple Icons -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+
+        * {
+
+            margin: 0;
+
+            padding: 0;
+
+            box-sizing: border-box;
+
+        }
+
+
+
+        body {
+
+            font-family: 'Inter', sans-serif;
+
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 100%);
+
+            min-height: 100vh;
+
+            padding: 2rem 1.5rem;
+
+            position: relative;
+
+        }
+
+
+
+        /* subtle animated background effect */
+
+        body::before {
+
+            content: '';
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            background: radial-gradient(circle at 20% 40%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+
+            pointer-events: none;
+
+            z-index: 0;
+
+        }
+
+
+
+        /* main container */
+
+        .dashboard {
+
+            max-width: 1400px;
+
+            margin: 0 auto;
+
+            position: relative;
+
+            z-index: 2;
+
+        }
+
+
+
+        /* header area */
+
+        .header {
+
+            text-align: center;
+
+            margin-bottom: 2.5rem;
+
+        }
+
+
+
+        .header h1 {
+
+            font-size: 2.6rem;
+
+            font-weight: 700;
+
+            background: linear-gradient(145deg, #0f172a, #1e293b);
+
+            background-clip: text;
+
+            -webkit-background-clip: text;
+
+            color: transparent;
+
+            letter-spacing: -0.02em;
+
+            display: inline-flex;
+
+            alig
+         n-items: center;
+
+            gap: 12px;
+
+        }
+
+
+
+        .header h1 i {
+
+            background: none;
+
+            color: #0f3b5f;
+
+            background-clip: unset;
+
+            -webkit-background-clip: unset;
+
+            font-size: 2.3rem;
+
+        }
+
+
+
+        .sub {
+
+            color: #1e3a5f;
+
+            font-weight: 500;
+
+            margin-top: 8px;
+
+            background: rgba(255,255,255,0.6);
+
+            backdrop-filter: blur(4px);
+
+            display: inline-block;
+
+            padding: 5px 18px;
+
+            border-radius: 40px;
+
+            font-size: 0.9rem;
+
+        }
+
+
+
+        /* two column layout: inputs + result card */
+
+        .grid-panel {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 2rem;
+
+            justify-content: center;
+
+        }
+
+
+
+        /* input card – modern glassmorphism */
+
+        .input-card {
+
+            flex: 2;
+
+            min-width: 320px;
+
+            background: rgba(255, 255, 255, 0.92);
+
+            backdrop-filter: blur(10px);
+
+            border-radius: 2rem;
+
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255,255,255,0.5);
+
+            padding: 1.5rem 1.8rem;
+
+            transition: transform 0.2s ease, box-shadow 0.2s;
+
+        }
+
+
+
+        .input-card:hover {
+
+            transform: translateY(-4px);
+
+            box-shadow: 0 28px 40px -16px rgba(0, 0, 0, 0.25);
+
+        }
+
+
+
+        .input-card h3 {
+
+            font-weight: 600;
+
+            font-size: 1.5rem;
+
+            margin-bottom: 1rem;
+
+            color: #0c4a6e;
+
+            border-left: 5px solid #2c7da0;
+
+            padding-left: 14px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+        }
+
+
+
+        .param-grid {
+
+            display: grid;
+
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+
+            gap: 1rem 1.2rem;
+
+            margin: 1.8rem 0 1.5rem;
+
+        }
+
+
+
+        .param-item {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 6px;
+
+        }
+
+
+
+        .param-item label {
+
+            font-size: 0.75rem;
+
+            font-weight: 600;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.5px;
+
+            color: #334155;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 6px;
+
+        }
+
+
+
+        .param-item label i {
+
+            width: 20px;
+
+            color: #2c7da0;
+
+            font-size: 0.85rem;
+
+        }
+
+
+
+        .param-item input {
+
+            background: #f1f5f9;
+
+            border: 1px solid #cbd5e1;
+
+            border-radius: 1rem;
+
+            padding: 10px 12px;
+
+            font-size: 0.9rem;
+
+            font-weight: 500;
+
+            font-family: 'Inter', monospace;
+
+            transition: all 0.2s;
+
+            outline: none;
+
+            color: #0f172a;
+
+        }
+
+
+
+        .param-item input:focus {
+
+            border-color: #2c7da0;
+
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+
+            background: white;
+
+        }
+
+
+
+        .param-item input::placeholder {
+
+            color: #94a3b8;
+
+            font-weight: 400;
+
+        }
+
+
+
+        .btn-check {
+
+            width: 100%;
+
+            background: linear-gradient(105deg, #1e6f5c, #289672);
+
+            border: none;
+
+            padding: 14px 0;
+
+            font-size: 1.05rem;
+
+            font-weight: 600;
+
+            color: white;
+
+            border-radius: 2rem;
+
+            cursor: pointer;
+
+            transition: all 0.25s;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 10px;
+
+            margin-top: 10px;
+
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+        }
+
+
+
+        .btn-check:hover {
+
+            background: linear-gradient(105deg, #0f5b4a, #1f7e68);
+
+            transform: scale(1.01);
+
+            box-shadow: 0 10px 18px -6px rgba(0,0,0,0.2);
+
+        }
+
+
+
+        /* result card styling */
+
+        .result-card {
+
+            flex: 1.3;
+
+            min-width: 330px;
+
+            background: rgba(255, 255, 255, 0.96);
+
+            backdrop-filter: blur(8px);
+
+            border-radius: 2rem;
+
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
+
+            padding: 1.5rem 1.6rem;
+
+            transition: all 0.2s;
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+
+        .result-header {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            border-bottom: 2px solid #e2e8f0;
+
+            padding-bottom: 12px;
+
+            margin-bottom: 1rem;
+
+        }
+
+
+
+        .result-header i {
+
+            font-size: 1.8rem;
+
+            color: #1e6f5c;
+
+        }
+
+
+
+        .result-header h3 {
+
+            font-size: 1.6rem;
+
+            font-weight: 600;
+
+            color: #0c4a6e;
+
+        }
+
+
+
+        .quality-badge {
+
+            text-align: center;
+
+            padding: 1rem;
+
+            border-radius: 1.5rem;
+
+            margin: 1rem 0;
+
+            font-weight: 700;
+
+            font-size: 1.3rem;
+
+            letter-spacing: 1px;
+
+            transition: all 0.2s;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 12px;
+
+        }
+
+
+
+        .score-box {
+
+            background: #f8fafc;
+
+            border-radius: 1.2rem;
+
+            padding: 10px;
+
+            text-align: center;
+
+            margin: 0.5rem 0;
+
+            font-weight: 500;
+
+            border: 1px solid #e2edf2;
+
+        }
+
+
+
+        .action-card {
+
+            background: #eef2ff;
+
+            border-left: 5px solid #289672;
+
+            padding: 12px 14px;
+
+            border-radius: 1rem;
+
+            margin: 0.75rem 0;
+
+            font-weight: 500;
+
+        }
+
+
+
+        .details-grid {
+
+            margin-top: 12px;
+
+            background: #f9f9fc;
+
+            border-radius: 1.2rem;
+
+            padding: 12px;
+
+            font-size: 0.8rem;
+
+        }
+
+
+
+        .details-grid p {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            margin: 7px 0;
+
+            border-bottom: 1px dashed #dce3ec;
+
+            padding-bottom: 5px;
+
+        }
+
+
+
+        .details-grid span:first-child {
+
+            font-weight: 600;
+
+            color: #1e293b;
+
+        }
+
+
+
+        .details-grid span:last-child {
+
+            font-family: monospace;
+
+            font-weight: 500;
+
+            color: #0f3b5f;
+
+        }
+
+
+
+        .error-message {
+
+            color: #b91c1c;
+
+            background: #fee2e2;
+
+            padding: 12px;
+
+            border-radius: 1rem;
+
+            font-weight: 500;
+
+            text-align: center;
+
+        }
+
+
+
+        footer {
+
+            text-align: center;
+
+            margin-top: 2.8rem;
+
+            font-size: 0.8rem;
+
+            color: #1e4762;
+
+            opacity: 0.8;
+
+        }
+
+
+
+        @media (max-width: 780px) {
+
+            body { padding: 1rem; }
+
+            .header h1 { font-size: 1.8rem; }
+
+            .param-grid { grid-template-columns: 1fr 1fr; }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <div class="header">
+
+        <h1>
+
+            <i class="fas fa-wind"></i> 
+
+            IAQ Intelligence
+
+        </h1>
+
+        <div class="sub">
+
+            <i class="fas fa-microchip"></i> Q-Learning based adaptive control · Real-time recommendation
+
+        </div>
+
+    </div>
+
+
+
+    <div class="grid-panel">
+
+        <!-- Input Section -->
+
+        <div class="input-card">
+
+            <h3><i class="fas fa-sliders-h"></i> Sensor Parameters</h3>
+
+            <div class="param-grid">
+
+                <div class="param-item">
+
+                    <label><i class="fas fa-smog"></i> CO (ppm)</label>
+
+                    <input type="number" id="co" placeholder="e.g., 2.5" step="any" value="2.3">
+
+                </div>
+
+                <div class="param-item">
+
+                    <label><i class="fas fa-flask"></i> C6H6 (µg/m³)</label>
+
+                    <input type="number" id="c6h6" placeholder="e.g., 5.2" step="any" value="4.8">
+
+                </div>
+
+                <div class="param-item">
+
+                    <label><i class="fas fa-industry"></i> NOx (ppb)</label>
+
+                    <input type="number" id="nox" placeholder="e.g., 35" step="any" value="28">
+
+                </div>
+
+                <div class="param-item">
+
+                    <label><i class="fas fa-leaf"></i> NO2 (ppb)</label>
+
+                    <input type="number" id="no2" placeholder="e.g., 22" step="any" value="18">
+
+                </div>
+
+                <div class="param-item">
+
+                    <label><i class="fas fa-thermometer-half"></i> Temp (°C)</label>
+
+                    <input type="number" id="temp" placeholder="e.g., 22.5" step="any" value="22.0">
+
+                </div>
+
+                <div class="param-item">
+
+                    <label><i class="fas fa-tint"></i> Humidity (%)</label>
+
+                    <input type="number" id="rh" placeholder="e.g., 45" step="any" value="48">
+
+                </div>
+
+                <div class="param-item">
+
+                    <label><i class="fas fa-water"></i> AH (g/m³)</label>
+
+                    <input type="number" id="ah" placeholder="Absolute humidity" step="0.01" value="9.2">
+
+                </div>
+
+            </div>
+
+            <button class="btn-check" onclick="predict()">
+
+                <i class="fas fa-chart-line"></i> Analyze & Recommend
+
+            </button>
+
+        </div>
+
+
+
+        <!-- Result Section: dynamic updates -->
+
+        <div class="result-card" id="resultCard">
+
+            <div class="result-header">
+
+                <i class="fas fa-clipboard-list"></i>
+
+                <h3>Assessment Report</h3>
+
+            </div>
+
+            <div id="resultContent">
+
+                <!-- initial placeholder -->
+
+                <div style="text-align: center; padding: 2rem 0.5rem; color: #5e7f9e;">
+
+                    <i class="fas fa-microphone-alt" style="font-size: 2rem; opacity: 0.6;"></i>
+
+                    <p style="margin-top: 12px;">Enter sensor values and click <strong>Analyze</strong><br>Q-Learning engine will evaluate air quality</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+
+        <i class="fas fa-robot"></i> Intelligent Q-Learning Agent | Actions optimized for indoor environment
+
+    </footer>
+
+</div>
+
+
+
+<script>
+
+    // ENHANCED PROFESSIONAL UI WITHOUT CHANGING LOGIC
+
+    // keep original endpoint and data handling exactly as required, 
+
+    // but with refined error display and loading states.
+
+
+
+    // Helper: show loading state inside result card
+
+    function setLoadingState() {
+
+        const resultDiv = document.getElementById("resultContent");
+
+        if (resultDiv) {
+
+            resultDiv.innerHTML = `
+
+                <div style="text-align: center; padding: 1.8rem;">
+
+                    <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: #289672;"></i>
+
+                    <p style="margin-top: 14px; font-weight: 500;">Q-Learning agent analyzing ...</p>
+
+                </div>
+
+            `;
+
+        }
+
+    }
+
+
+
+    // helper: map air quality to icon & gradient class
+
+    function getQualityIconAndStyle(quality) {
+
+        const q = quality.toUpperCase();
+
+        if (q === "GOOD") return { icon: "fa-smile-wink", bgClass: "#d1fae5", textColor: "#065f46", borderGlow: "#10b981" };
+
+        if (q === "MODERATE") return { icon: "fa-meh", bgClass: "#fef9c3", textColor: "#854d0e", borderGlow: "#eab308" };
+
+        if (q === "POOR") return { icon: "fa-frown", bgClass: "#ffedd5", textColor: "#9a3412", borderGlow: "#f97316" };
+
+        if (q === "VERY POOR") return { icon: "fa-skull-crossbones", bgClass: "#fee2e2", textColor: "#991b1b", borderGlow: "#dc2626" };
+
+        return { icon: "fa-question", bgClass: "#e2e8f0", textColor: "#1e293b", borderGlow: "#64748b" };
+
+    }
+
+
+
+    // format numbers nicely
+
+    function formatValue(val) {
+
+        if (val === undefined || val === null) return '—';
+
+        let num = parseFloat(val);
+
+        if (isNaN(num)) return val;
+
+        return num.toFixed(2);
+
+    }
+
+
+
+    // main prediction call - preserves exact fetch logic, backend contract unchanged
+
+    window.predict = function() {
+
+        // gather all input values
+
+        const co = parseFloat(document.getElementById("co").value);
+
+        const c6h6 = parseFloat(document.getElementById("c6h6").value);
+
+        const nox = parseFloat(document.getElementById("nox").value);
+
+        const no2 = parseFloat(document.getElementById("no2").value);
+
+        const temp = parseFloat(document.getElementById("temp").value);
+
+        const rh = parseFloat(document.getElementById("rh").value);
+
+        const ah = parseFloat(document.getElementById("ah").value);
+
+
+
+        // validate numeric inputs (soft check)
+
+        if (isNaN(co) || isNaN(c6h6) || isNaN(nox) || isNaN(no2) || isNaN(temp) || isNaN(rh) || isNaN(ah)) {
+
+            const resultDiv = document.getElementById("resultContent");
+
+            if (resultDiv) {
+
+                resultDiv.innerHTML = `
+
+                    <div class="error-message">
+
+                        <i class="fas fa-exclamation-triangle"></i> Invalid numeric input.<br>
+
+                        Please fill all fields with valid numbers.
+
+                    </div>
+
+                `;
+
+            }
+
+            return;
+
+        }
+
+
+
+        // loading UI feedback
+
+        setLoadingState();
+
+
+
+        // call backend (same endpoint and format as original)
+
+        fetch("http://127.0.0.1:5000/predict", {
+
+            method: "POST",
+
+            headers: { "Content-Type": "application/json" },
+
+            body: JSON.stringify({ co, c6h6, nox, no2, temp, rh, ah })
+
+        })
+
+        .then(res => {
+
+            if (!res.ok) {
+
+                throw new Error(`Server responded with status ${res.status}`);
+
+            }
+
+            return res.json();
+
+        })
+
+        .then(data => {
+
+            // data expected: { air_quality, score, action, details: { "CO(GT)", "C6H6(GT)", "NOx(GT)", "NO2(GT)", "Temperature", "RH", "AH" } }
+
+            const quality = data.air_quality || "MODERATE";
+
+            const score = (data.score !== undefined && data.score !== null) ? data.score : "—";
+
+            const action = data.action || "Maintain ventilation";
+
+            const details = data.details || {};
+
+
+
+            // get styling based on quality
+
+            const style = getQualityIconAndStyle(quality);
+
+            
+
+            // build the beautiful result card preserving all original info
+
+            const resultHtml = `
+
+                <div class="quality-badge" style="background: ${style.bgClass}; color: ${style.textColor}; border-left: 5px solid ${style.borderGlow};">
+
+                    <i class="fas ${style.icon}"></i>
+
+                    <span>Air Quality: <strong>${quality}</strong></span>
+
+                </div>
+
+                <div class="score-box">
+
+                    <i class="fas fa-chart-simple"></i>  IAQ Score: <strong style="font-size: 1.2rem;">${score}</strong> / 100
+
+                </div>
+
+                <div class="action-card">
+
+                    <i class="fas fa-robot" style="margin-right: 8px;"></i> 
+
+                    <span style="font-weight: 700;">Recommended Action</span><br>
+
+                    <span style="font-size: 0.95rem;">⚡ ${action}</span>
+
+                </div>
+
+                <div class="details-grid">
+
+                    <p><span><i class="fas fa-chart-line"></i> CO (ppm)</span> <span>${formatValue(details["CO(GT)"])}</span></p>
+
+                    <p><span><i class="fas fa-vial"></i> C6H6 (µg/m³)</span> <span>${formatValue(details["C6H6(GT)"])}</span></p>
+
+                    <p><span><i class="fas fa-cloud"></i> NOx (ppb)</span> <span>${formatValue(details["NOx(GT)"])}</span></p>
+
+                    <p><span><i class="fas fa-leaf"></i> NO2 (ppb)</span> <span>${formatValue(details["NO2(GT)"])}</span></p>
+
+                    <p><span><i class="fas fa-temperature-low"></i> Temperature (°C)</span> <span>${formatValue(details["Temperature"])}</span></p>
+
+                    <p><span><i class="fas fa-tint"></i> Relative Humidity (%)</span> <span>${formatValue(details["RH"])}</span></p>
+
+                    <p><span><i class="fas fa-droplet"></i> Absolute Humidity (g/m³)</span> <span>${formatValue(details["AH"])}</span></p>
+
+                </div>
+
+                <div style="margin-top: 12px; font-size: 0.7rem; text-align: center; color: #5b7a9a;">
+
+                    <i class="fas fa-brain"></i> Q-Learning policy · Adaptive ventilation
+
+                </div>
+
+            `;
+
+            const resultContainer = document.getElementById("resultContent");
+
+            if (resultContainer) resultContainer.innerHTML = resultHtml;
+
+        })
+
+        .catch(err => {
+
+            console.error("Fetch error:", err);
+
+            const resultDiv = document.getElementById("resultContent");
+
+            if (resultDiv) {
+
+                resultDiv.innerHTML = `
+
+                    <div class="error-message">
+
+                        <i class="fas fa-plug"></i> Connection error: Make sure backend is running.<br>
+
+                        <span style="font-size: 0.8rem;">POST http://127.0.0.1:5000/predict unavailable</span><br>
+
+                        <small>${err.message}</small>
+
+                    </div>
+
+                    <div style="margin-top: 15px; background:#f1f5f9; border-radius: 1rem; padding: 8px; font-size:0.8rem;">
+
+                        <i class="fas fa-info-circle"></i> Tip: Start Flask server at port 5000 with /predict endpoint
+
+                    </div>
+
+                `;
+
+            }
+
+        });
+
+    };
+
+
+
+    // Optional: pre-fill demo values on load for better demonstration (but preserve default values)
+
+    // no logic change, just pre-fill nice realistic numbers to show UI beauty
+
+    window.addEventListener('DOMContentLoaded', () => {
+
+        // Set default demo values (doesn't affect logic, just better first load)
+
+        // Only if inputs are empty-ish (original had values, we set decent references)
+
+        const coField = document.getElementById("co");
+
+        const c6h6Field = document.getElementById("c6h6");
+
+        const noxField = document.getElementById("nox");
+
+        const no2Field = document.getElementById("no2");
+
+        const tempField = document.getElementById("temp");
+
+        const rhField = document.getElementById("rh");
+
+        const ahField = document.getElementById("ah");
+
+        
+
+        if (coField && (coField.value === "" || coField.value === "0")) coField.value = "2.1";
+
+        if (c6h6Field && (c6h6Field.value === "" || c6h6Field.value === "0")) c6h6Field.value = "5.3";
+
+        if (noxField && (noxField.value === "" || noxField.value === "0")) noxField.value = "32";
+
+        if (no2Field && (no2Field.value === "" || no2Field.value === "0")) no2Field.value = "20";
+
+        if (tempField && (tempField.value === "" || tempField.value === "0")) tempField.value = "23.2";
+
+        if (rhField && (rhField.value === "" || rhField.value === "0")) rhField.value = "52";
+
+        if (ahField && (ahField.value === "" || ahField.value === "0")) ahField.value = "10.8";
+
+        
+
+        // add subtle event listener: pressing Enter in any input triggers prediction
+
+        const inputs = document.querySelectorAll('.param-item input');
+
+        inputs.forEach(input => {
+
+            input.addEventListener('keypress', (e) => {
+
+                if (e.key === 'Enter') {
+
+                    e.preventDefault();
+
+                    predict();
+
+                }
+
+            });
+
+        });
+
+    });
+
+</script>
+
+</body>
+
+</html>
+
+```
