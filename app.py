@@ -6,7 +6,7 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)
 
-dataset_path = "C:/Users/DELL/Desktop/imop/AirQualityUCI.xlsx"
+dataset_path = "AirQualityUCI.xlsx"
 df = pd.read_excel(dataset_path)
 
 df.replace(-200, np.nan, inplace=True)
